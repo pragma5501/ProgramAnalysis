@@ -1,0 +1,44 @@
+# Docker ignore file for PointerAnalysis Framework
+
+# Git files
+.git
+.gitignore
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation (except CLAUDE.md and README.md)
+*.md
+!README.md
+!CLAUDE.md
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Docker files (no need to copy Dockerfile into image)
+Dockerfile
+.dockerignore
+
+# Large result directories (these will be generated in container)
+results/analysis_*/
+
+# Optional: Exclude some benchmark results if they're large
+# Uncomment if benchmarks generate large output files:
+# benchmarks/*/results/

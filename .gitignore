@@ -1,0 +1,36 @@
+# Folder
+*/results/
+**/__pycache__/
+
+# Logs
+
+# Dependency directories
+
+# Environment variables
+
+# Editor directories and files
+.idea
+.vscode
+CLAUDE.md
+
+# OS specific
+.DS_Store
+
+# Compiled files
+*.class
+
+# Others
+*.sh
+requirements.txt
+*.log
+*.aux
+*.fls
+*.gz
+*.latexmk
+*.out
+*.bbl
+*.blg
+*.fdb_latexmk
+template.py
+solution*
+*/Documents/*
