@@ -17,5 +17,6 @@ public class Move {
             v1 = objA;
             v2 = objB;
         }
+        assert v1 != v2 : "v1 should not be equal to v2";
     }
 }
