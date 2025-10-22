@@ -1,12 +1,14 @@
 # Pointer Analysis Programming Assignment
 
-**Course:** IC637 - Program Analysis  
-**Instructor:** Minseok Jeon  
+**Course:** IC637 - Program Analysis
+**Instructor:** Minseok Jeon
 **Assignment:** Implement a flow-insensitive, context-insensitive pointer analysis for Java programs
 
 ## Overview
 
-This assignment involves implementing a pointer analysis for Java programs based on Andersen's algorithm. The analysis operates on intermediate facts extracted from Java bytecode using the Soot framework, and computes three key relations: variable points-to, field points-to, and call graph information.
+This assignment involves implementing a pointer analysis for Java programs based on **Andersen's algorithm**. The analysis operates on intermediate facts extracted from Java bytecode using the **Soot framework**, and computes three key relations: **variable points-to**, **field points-to**, and **call graph** information.
+
+You will work with a complete automated pipeline that handles bytecode processing, fact extraction, and result generation—allowing you to focus entirely on implementing the core pointer analysis logic.
 
 ## Assignment Objectives
 
@@ -22,6 +24,14 @@ Your task is to implement **nine key functions** in the `analysis.py` file withi
 8. `process_param` - Handle parameter passing
 9. `process_return` - Handle return values
 
+## What You Need to Know
+
+Your implementation will compute these three relations using a fixed-point algorithm:
+
+- **VarPointsTo(variable, heap)** - Which variables point to which allocation sites
+- **FldPointsTo(heap, field, targetHeap)** - Which object fields point to which objects
+- **CallGraph(invocationSite, method)** - Which methods are called from which sites
+
 ## Repository Structure
 
 ```
@@ -29,16 +39,13 @@ Assignment/
 ├── analysis.py              # 🎯 YOUR MAIN IMPLEMENTATION FILE
 ├── main.py                  # Pipeline orchestrator
 ├── results.py               # Results storage and export
-├── requirements.txt         # Python dependencies
-├── Dockerfile              # Container setup for consistent environment
-├── CLAUDE.md               # Development guidance for Claude Code
-├── bin/                    # Java bytecode processing tools
+├── bin/                     # Java bytecode processing tools
 │   ├── JarStmtCollector.java    # Soot-based statement extractor
 │   └── sootclasses-trunk-jar-with-dependencies.jar
-├── frontend/               # Fact extraction pipeline
+├── frontend/                # Fact extraction pipeline
 │   ├── extract_facts.py        # Convert Jimple statements → facts
 │   └── read_facts.py           # Data structures and fact reading
-├── benchmarks/             # Test programs for validation
+├── benchmarks/              # Test programs for validation
 │   ├── alloc/Alloc.jar         # Object allocation test
 │   ├── move/Move.jar           # Variable assignment test
 │   ├── load/Load.jar           # Field load test
@@ -46,7 +53,7 @@ Assignment/
 │   ├── static_call/StaticCall.jar    # Static method call test
 │   ├── special_call/SpecialCall.jar  # Constructor/super call test
 │   └── virtual_call/VirtualCall.jar  # Virtual method call test
-└── results/                # Generated analysis results
+└── results/                 # Generated analysis results
 ```
 
 ## Analysis Workflow
@@ -102,25 +109,11 @@ The analysis works with these facts (stored as tab-separated `.facts` files) in 
 - **`Method.facts`**: `(method)` - Methods in the program
 
 
-## Analysis Rules to Implement
+## Understanding the Analysis
 
-Your implementation should compute these three relations:
+Pointer analysis uses **inference rules** to derive points-to facts. You need to implement these nine rules based on Andersen's algorithm. Each rule examines program facts and derives new points-to or call graph relations.
 
-- **VarPointsTo**: `(variable, allocationSite)` - Which variables point to which objects
-- **FldPointsTo**: `(heap, field, mappedHeap)` - Which object fields point to which objects  
-- **CallGraph**: `(invocationSite, method)` - Which methods are called from which sites
-
-### The Nine Analysis Rules
-
-1. **Allocation Rule**: Direct variable-to-heap assignments
-2. **Move Rule**: Propagate points-to through variable assignments
-3. **Load Rule**: Propagate through field reads
-4. **Store Rule**: Update field points-to through field writes
-5. **Static Call Rule**: Handle static method calls with parameter/return passing
-6. **Special Call Rule**: Handle constructors/super calls with this-binding
-7. **Virtual Call Rule**: Handle virtual dispatch with type-based method resolution
-8. **Param Rule**: Handle parameter passing
-9. **Return Rule**: Handle return values
+Study the lecture notes and the assignment PDF for the formal specifications of each rule.
 
 ## Implementation Strategy
 
@@ -133,33 +126,19 @@ In `analysis.py`, the `PointerAnalysisAnalyzer` class provides:
 
 ### Fixed-Point Algorithm
 
-The main `analysis()` method implements a fixed-point algorithm:
+The main `analysis()` method (already provided) implements a fixed-point iteration that repeatedly applies all nine rules until no new facts are derived.
 
-```python
-def analysis(self):
-    # Initialize with main method
-    main_method = find_main_method(self.data)
-    self._call_graph.add(CallGraphEdge(None, main_method))
-    
-    # Fixed-point iteration
-    changed = True
-    while changed:
-        previous_count = self.results_count()
-        
-        # Apply all seven rules
-        self.process_alloc()
-        self.process_move()
-        self.process_load()
-        self.process_store()
-        self.process_static_call()
-        self.process_special_call()
-        self.process_virtual_call()
-        self.process_param()
-        self.process_return()
-        
-        # Check convergence
-        changed = (self.results_count() > previous_count)
-```
+### Data Structures
+
+In `analysis.py`, the `PointerAnalysisAnalyzer` class provides:
+
+- **Input facts**: `self.data` contains all program facts (allocations, moves, loads, stores, method invocations, etc.)
+- **Result storage**:
+  - `self._var_points_to` - Set of VarPtsTo facts
+  - `self._fld_points_to` - Set of FldPtsTo facts
+  - `self._call_graph` - Set of CallGraphEdge facts
+
+Study `frontend/read_facts.py` to understand the available data structures and how to access them.
 
 ## Testing Your Implementation
 
@@ -172,8 +151,8 @@ Each benchmark tests specific aspects:
 - **`load`**: Field reads (`x = obj.field`)
 - **`store`**: Field writes (`obj.field = x`)
 - **`static_call`**: Static method calls (`Class.method()`)
-- **`special_call`**: Constructor calls (`new Obj()`, `super()`)
-- **`virtual_call`**: Virtual method dispatch (`obj.method()`)
+- **`special_call`**: Constructor calls (`new Obj()`)
+- **`virtual_call`**: Virtual method calls (`obj.method()`)
 
 ### Running Tests
 
@@ -204,45 +183,26 @@ Expected output includes:
 
 ## Development Tips
 
-### Understanding the Data
+### Implementation Approach
 
-Study `frontend/read_facts.py` to understand the input data structures:
-
-```python
-# Example: Access allocation facts
-for alloc in self.data.allocations:
-    variable = alloc.variable      # e.g., "<Main: void main()>/r1"  
-    heap = alloc.allocation_site   # e.g., "<Main: void main()>/HeapAlloc_1_String"
-    method = alloc.method          # e.g., "<Main: void main()>"
-```
+Start with simpler rules (like `process_alloc` and `process_move`) before tackling more complex ones (like `process_virtual_call`). Test each function incrementally using the benchmark programs.
 
 ### Debugging
 
-- Use `--verbose` flag for detailed execution logs
-- Examine generated `.facts` files to understand your input
-- Check intermediate results during fixed-point iteration
-- Print points-to sets at each iteration to see convergence
+- Use `--verbose` flag to see detailed execution logs
+- Examine generated `.facts` files in `results/analysis_{program}/facts/` to understand input data
+- Check output in `results/analysis_{program}/analysis_results/detailed_report.txt`
+- The benchmark source code is available in `benchmarks/*/` directories
 
+### Key Considerations
 
-## Expected Deliverables
-
-Your completed `analysis.py` should:
-
-1. ✅ Implement all seven `process_*` functions correctly
-2. ✅ Pass all benchmark tests with correct results
-3. ✅ Converge to a fixed point (finite termination)
-4. ✅ Generate accurate VarPointsTo, FldPointsTo, and CallGraph relations
-
-## Tips
-
-1. Study the provided benchmark programs and their expected behavior
-2. Use the verbose output to trace analysis execution
-3. Examine the generated facts files to understand the input format
-4. Test incrementally - start with simple benchmarks like `alloc` and `move`
-
+- The analysis uses a fixed-point iteration, so rules may need multiple iterations to converge
+- Result sets automatically handle duplicates
+- Virtual call resolution requires understanding object types and method dispatch
+- Parameters and return values should only be processed for methods in the call graph
 
 ## Submission
 
-Students must submit their completed **`analysis.py`** file containing implementations of the 9 required analysis functions.
+Submit your completed **`analysis.py`** file containing implementations of all 9 required analysis functions. Your implementation should correctly compute VarPointsTo, FldPointsTo, and CallGraph relations for the provided benchmark programs.
 
 
