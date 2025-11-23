@@ -39,21 +39,6 @@ class FldPtsTo:
     heap: str
     field: str
     mappedHeap: str
-# | allocations            | Set of HeapAllocationFact – (variable, heap allocation, method) |
-# | alloc_types            | Set of HeapAllocTypeFact – (allocation site, allocated type)    |
-# | moves                  | Set of MoveFact – (to_variable, from_variable, method)          |
-# | loads                  | Set of LoadFact – (to_variable, from_variable, field, method)   |
-# | stores                 | Set of StoreFact – (base_variable, field, from_variable, method)|
-# | return_vars            | Set of ReturnVarFact – (variable, method)                       |
-# | virtual_invocations    | Set of VirtualInvocationFact – (invocation, base_variable, called_method_name, enclosing_method) |
-# | static_invocations     | Set of StaticInvocationFact – (invocation, called_method_signature, enclosing_method) |
-# | special_invocations    | Set of SpecialInvocationFact – (invocation, base_variable, called_method_signature, enclosing_method) |
-# | actual_params          | Set of ActualParamFact – (index, invocation, variable)          |
-# | formal_params          | Set of FormalParamFact – (index, method, variable)              |
-# | this_vars              | Set of ThisVarFact – (method, this_variable)                    |
-# | assign_return_values   | Set of AssignReturnValueFact – (invocation, assigned_variable)  |
-# | method_name_types      | Set of MethodNameTypeFact – (method, method_name, enclosing_class) |
-# | methods                | Set[str] – all method signatures
 
 
 class PointerAnalysisAnalyzer:
